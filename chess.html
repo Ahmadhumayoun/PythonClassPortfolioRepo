@@ -1,0 +1,1093 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Chess Online</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+  <script src="https://unpkg.com/peerjs@1.5.2/dist/peerjs.min.js"></script>
+  <style>
+    :root {
+      --primary: #00d4ff;
+      --accent: #7b5eff;
+      --dark: #0a0a0a;
+      --glass: rgba(255, 255, 255, 0.08);
+    }
+
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: 'Segoe UI', system-ui, sans-serif;
+      background: var(--dark);
+      color: #e0e0e0;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      overflow-x: hidden;
+    }
+
+    .bg-animation {
+      position: fixed;
+      inset: 0;
+      background: radial-gradient(circle at 20% 30%, rgba(0, 212, 255, 0.08) 0%, transparent 50%),
+                  radial-gradient(circle at 80% 70%, rgba(123, 94, 255, 0.08) 0%, transparent 50%);
+      z-index: -1;
+      animation: bgMove 25s ease infinite;
+    }
+
+    @keyframes bgMove {
+      0% { background-position: 0% 50%; }
+      50% { background-position: 100% 50%; }
+      100% { background-position: 0% 50%; }
+    }
+
+    nav {
+      position: fixed;
+      top: 20px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: var(--glass);
+      backdrop-filter: blur(20px);
+      border: 1px solid rgba(255,255,255,0.1);
+      border-radius: 60px;
+      padding: 12px 40px;
+      z-index: 1000;
+      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+    }
+
+    .logo {
+      font-size: 1.6rem;
+      font-weight: 700;
+      background: linear-gradient(90deg, var(--primary), var(--accent));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      text-decoration: none;
+    }
+
+    .container {
+      margin-top: 120px;
+      padding: 20px;
+      text-align: center;
+      max-width: 500px;
+      width: 100%;
+    }
+
+    h1 {
+      font-size: 2.5rem;
+      margin-bottom: 10px;
+      background: linear-gradient(90deg, var(--primary), var(--accent));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+
+    .subtitle {
+      color: #888;
+      margin-bottom: 30px;
+    }
+
+    .card {
+      background: var(--glass);
+      backdrop-filter: blur(20px);
+      border: 1px solid rgba(255,255,255,0.1);
+      border-radius: 20px;
+      padding: 40px;
+      margin-bottom: 20px;
+    }
+
+    .card h2 {
+      font-size: 1.5rem;
+      margin-bottom: 20px;
+      color: #fff;
+    }
+
+    .input-group {
+      margin-bottom: 20px;
+    }
+
+    .input-group label {
+      display: block;
+      text-align: left;
+      margin-bottom: 8px;
+      color: #aaa;
+      font-size: 0.9rem;
+    }
+
+    .input-group input {
+      width: 100%;
+      padding: 15px 20px;
+      background: rgba(255,255,255,0.05);
+      border: 1px solid rgba(255,255,255,0.1);
+      border-radius: 12px;
+      color: #fff;
+      font-size: 1.1rem;
+      text-align: center;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+    }
+
+    .input-group input:focus {
+      outline: none;
+      border-color: var(--primary);
+      box-shadow: 0 0 20px rgba(0, 212, 255, 0.2);
+    }
+
+    .btn {
+      padding: 15px 40px;
+      border: none;
+      border-radius: 25px;
+      font-size: 1.1rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      width: 100%;
+      margin-bottom: 15px;
+    }
+
+    .btn-primary {
+      background: linear-gradient(90deg, var(--primary), var(--accent));
+      color: white;
+    }
+
+    .btn-secondary {
+      background: rgba(255,255,255,0.1);
+      color: #fff;
+      border: 1px solid rgba(255,255,255,0.2);
+    }
+
+    .btn:hover {
+      transform: translateY(-3px);
+      box-shadow: 0 10px 25px rgba(0, 212, 255, 0.3);
+    }
+
+    .btn:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+      transform: none;
+    }
+
+    .status {
+      padding: 15px;
+      border-radius: 12px;
+      margin-bottom: 20px;
+      font-size: 0.95rem;
+    }
+
+    .status.info {
+      background: rgba(0, 212, 255, 0.1);
+      border: 1px solid var(--primary);
+      color: var(--primary);
+    }
+
+    .status.success {
+      background: rgba(74, 222, 128, 0.1);
+      border: 1px solid #4ade80;
+      color: #4ade80;
+    }
+
+    .status.error {
+      background: rgba(248, 113, 113, 0.1);
+      border: 1px solid #f87171;
+      color: #f87171;
+    }
+
+    .room-code {
+      font-size: 2.5rem;
+      font-weight: 700;
+      letter-spacing: 8px;
+      color: var(--primary);
+      background: rgba(0, 212, 255, 0.1);
+      padding: 20px;
+      border-radius: 15px;
+      margin: 20px 0;
+    }
+
+    .copy-btn {
+      background: rgba(255,255,255,0.1);
+      border: 1px solid rgba(255,255,255,0.2);
+      color: #fff;
+      padding: 10px 25px;
+      border-radius: 20px;
+      cursor: pointer;
+      font-size: 0.9rem;
+      transition: all 0.3s ease;
+    }
+
+    .copy-btn:hover {
+      background: var(--primary);
+    }
+
+    .or-divider {
+      display: flex;
+      align-items: center;
+      margin: 25px 0;
+      color: #666;
+    }
+
+    .or-divider::before,
+    .or-divider::after {
+      content: '';
+      flex: 1;
+      height: 1px;
+      background: rgba(255,255,255,0.1);
+    }
+
+    .or-divider span {
+      padding: 0 15px;
+      font-size: 0.9rem;
+    }
+
+    /* Game Board Styles */
+    .game-container {
+      display: none;
+      max-width: 100%;
+      width: 100%;
+    }
+
+    .game-container.active {
+      display: block;
+    }
+
+    .menu-container {
+      display: block;
+    }
+
+    .menu-container.hidden {
+      display: none;
+    }
+
+    .game-info {
+      display: flex;
+      justify-content: center;
+      gap: 30px;
+      margin-bottom: 20px;
+      flex-wrap: wrap;
+    }
+
+    .info-box {
+      background: var(--glass);
+      padding: 12px 25px;
+      border-radius: 15px;
+      border: 1px solid rgba(255,255,255,0.1);
+    }
+
+    .info-label {
+      font-size: 0.75rem;
+      color: #888;
+      text-transform: uppercase;
+    }
+
+    .info-value {
+      font-size: 1.2rem;
+      font-weight: 700;
+    }
+
+    .color-badge {
+      display: inline-block;
+      padding: 5px 15px;
+      border-radius: 20px;
+      font-size: 0.9rem;
+    }
+
+    .color-badge.white {
+      background: #f0f0f0;
+      color: #333;
+    }
+
+    .color-badge.black {
+      background: #333;
+      color: #f0f0f0;
+    }
+
+    .connection-status {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 0.9rem;
+    }
+
+    .connection-dot {
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+      animation: pulse 2s infinite;
+    }
+
+    .connection-dot.connected {
+      background: #4ade80;
+    }
+
+    .connection-dot.connecting {
+      background: #fbbf24;
+    }
+
+    .connection-dot.disconnected {
+      background: #f87171;
+    }
+
+    @keyframes pulse {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.5; }
+    }
+
+    .board-container {
+      display: inline-block;
+      background: var(--glass);
+      padding: 15px;
+      border-radius: 20px;
+      border: 1px solid rgba(255,255,255,0.1);
+      box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+    }
+
+    .board {
+      display: grid;
+      grid-template-columns: repeat(8, 1fr);
+      border: 4px solid #333;
+      border-radius: 8px;
+      overflow: hidden;
+      width: min(90vw, 480px);
+      aspect-ratio: 1;
+    }
+
+    .square {
+      aspect-ratio: 1;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: min(8vw, 3rem);
+      cursor: pointer;
+      position: relative;
+      transition: all 0.2s ease;
+    }
+
+    .square.light { background: #f0d9b5; }
+    .square.dark { background: #b58863; }
+    .square.selected { background: rgba(255, 255, 0, 0.6) !important; }
+    .square.possible-move { background: rgba(0, 255, 0, 0.3) !important; }
+    .square.possible-capture { background: rgba(255, 0, 0, 0.3) !important; }
+    .square.last-move { box-shadow: inset 0 0 0 3px rgba(255, 255, 0, 0.5); }
+    .square:hover { filter: brightness(1.1); }
+
+    .piece {
+      text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+      user-select: none;
+      transition: transform 0.1s ease;
+      pointer-events: none;
+    }
+
+    .captured-section {
+      margin-top: 15px;
+    }
+
+    .captured-label {
+      font-size: 0.8rem;
+      color: #888;
+      text-align: left;
+      margin-bottom: 5px;
+    }
+
+    .captured-pieces {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 3px;
+      min-height: 30px;
+      padding: 8px;
+      background: rgba(0,0,0,0.2);
+      border-radius: 8px;
+      font-size: 1.2rem;
+    }
+
+    .game-controls {
+      margin-top: 20px;
+      display: flex;
+      gap: 15px;
+      justify-content: center;
+      flex-wrap: wrap;
+    }
+
+    .game-controls .btn {
+      width: auto;
+      padding: 12px 25px;
+      font-size: 1rem;
+    }
+
+    .back-link {
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+      color: var(--primary);
+      text-decoration: none;
+      margin-bottom: 20px;
+      transition: all 0.3s ease;
+    }
+
+    .back-link:hover { transform: translateX(-5px); }
+
+    .waiting-message {
+      font-size: 1.1rem;
+      color: #888;
+      margin-top: 20px;
+    }
+
+    .waiting-message i {
+      animation: spin 1s linear infinite;
+    }
+
+    @keyframes spin {
+      from { transform: rotate(0deg); }
+      to { transform: rotate(360deg); }
+    }
+
+    @media (max-width: 500px) {
+      .container { margin-top: 100px; padding: 15px; }
+      .card { padding: 25px; }
+      .room-code { font-size: 1.8rem; letter-spacing: 4px; }
+      .game-info { gap: 15px; }
+      .info-box { padding: 10px 15px; }
+    }
+  </style>
+</head>
+<body>
+  <div class="bg-animation"></div>
+
+  <nav>
+    <a href="index.html" class="logo">Ahmad Humayoun</a>
+  </nav>
+
+  <!-- Menu Container -->
+  <div class="container menu-container" id="menuContainer">
+    <a href="index.html" class="back-link">
+      <i class="fas fa-arrow-left"></i> Back to Portfolio
+    </a>
+
+    <h1>Chess Online</h1>
+    <p class="subtitle">Play with friends anywhere!</p>
+
+    <!-- Create Room -->
+    <div class="card">
+      <h2><i class="fas fa-plus-circle"></i> Create Room</h2>
+      <div class="input-group">
+        <label>Your Name</label>
+        <input type="text" id="createName" placeholder="Enter your name" maxlength="20">
+      </div>
+      <button class="btn btn-primary" id="createBtn" onclick="createRoom()">
+        <i class="fas fa-plus"></i> Create Room
+      </button>
+    </div>
+
+    <div class="or-divider"><span>OR</span></div>
+
+    <!-- Join Room -->
+    <div class="card">
+      <h2><i class="fas fa-sign-in-alt"></i> Join Room</h2>
+      <div class="input-group">
+        <label>Your Name</label>
+        <input type="text" id="joinName" placeholder="Enter your name" maxlength="20">
+      </div>
+      <div class="input-group">
+        <label>Room Code</label>
+        <input type="text" id="joinCode" placeholder="Enter 6-digit code" maxlength="6">
+      </div>
+      <button class="btn btn-primary" id="joinBtn" onclick="joinRoom()">
+        <i class="fas fa-sign-in-alt"></i> Join Room
+      </button>
+    </div>
+
+    <div class="status info" id="menuStatus"></div>
+  </div>
+
+  <!-- Waiting Room (Host) -->
+  <div class="container menu-container" id="waitingContainer" style="display: none;">
+    <a href="index.html" class="back-link">
+      <i class="fas fa-arrow-left"></i> Back to Portfolio
+    </a>
+    <h1>Waiting for Opponent</h1>
+    <p class="subtitle" id="waitingSubtitle">Share this code with your friend</p>
+
+    <div class="card">
+      <div class="room-code" id="roomCodeDisplay"></div>
+      <button class="copy-btn" onclick="copyRoomCode()">
+        <i class="fas fa-copy"></i> Copy Code
+      </button>
+    </div>
+
+    <p class="waiting-message">
+      <i class="fas fa-spinner fa-pulse"></i> Waiting for opponent to join...
+    </p>
+
+    <button class="btn btn-secondary" onclick="cancelRoom()">
+      <i class="fas fa-times"></i> Cancel & Go Back
+    </button>
+  </div>
+
+  <!-- Joining Status -->
+  <div class="container menu-container" id="joiningContainer" style="display: none;">
+    <a href="index.html" class="back-link">
+      <i class="fas fa-arrow-left"></i> Back to Portfolio
+    </a>
+    <h1>Joining Room</h1>
+    <p class="waiting-message">
+      <i class="fas fa-spinner fa-pulse"></i> Connecting to room...
+    </p>
+    <button class="btn btn-secondary" onclick="cancelJoin()">
+      <i class="fas fa-times"></i> Cancel
+    </button>
+  </div>
+
+  <!-- Game Container -->
+  <div class="container game-container" id="gameContainer">
+    <a href="#" class="back-link" onclick="leaveGame()">
+      <i class="fas fa-arrow-left"></i> Leave Game
+    </a>
+
+    <div class="game-info">
+      <div class="info-box">
+        <div class="info-label">You are</div>
+        <div class="info-value">
+          <span class="color-badge" id="myColorBadge">-</span>
+        </div>
+      </div>
+      <div class="info-box">
+        <div class="info-label">Turn</div>
+        <div class="info-value" id="turnDisplay">-</div>
+      </div>
+      <div class="info-box">
+        <div class="info-label">Connection</div>
+        <div class="connection-status">
+          <span class="connection-dot connected" id="connectionDot"></span>
+          <span id="connectionText">Connected</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="board-container">
+      <div class="board" id="board"></div>
+      <div class="captured-section">
+        <div class="captured-label">White Captured:</div>
+        <div class="captured-pieces" id="whiteCaptured"></div>
+        <div class="captured-label" style="margin-top: 10px;">Black Captured:</div>
+        <div class="captured-pieces" id="blackCaptured"></div>
+      </div>
+    </div>
+
+    <div class="game-controls">
+      <button class="btn btn-secondary" onclick="leaveGame()">
+        <i class="fas fa-door-open"></i> Leave
+      </button>
+    </div>
+  </div>
+
+  <script>
+    // Game State
+    let peer = null;
+    let conn = null;
+    let isHost = false;
+    let myColor = null;
+    let roomCode = null;
+    let playerName = null;
+    let board = [];
+    let selectedSquare = null;
+    let currentTurn = 'white';
+    let capturedWhite = [];
+    let capturedBlack = [];
+    let lastMove = null;
+    let enPassantTarget = null;
+    let gameStarted = false;
+
+    const PIECES = {
+      'K': '♔', 'Q': '♕', 'R': '♖', 'B': '♗', 'N': '♘', 'P': '♙',
+      'k': '♚', 'q': '♛', 'r': '♜', 'b': '♝', 'n': '♞', 'p': '♟'
+    };
+
+    function generateRoomCode() {
+      return Math.random().toString(36).substring(2, 8).toUpperCase();
+    }
+
+    function initBoard() {
+      board = [
+        ['r', 'n', 'b', 'q', 'k', 'b', 'n', 'r'],
+        ['p', 'p', 'p', 'p', 'p', 'p', 'p', 'p'],
+        ['', '', '', '', '', '', '', ''],
+        ['', '', '', '', '', '', '', ''],
+        ['', '', '', '', '', '', '', ''],
+        ['', '', '', '', '', '', '', ''],
+        ['P', 'P', 'P', 'P', 'P', 'P', 'P', 'P'],
+        ['R', 'N', 'B', 'Q', 'K', 'B', 'N', 'R']
+      ];
+    }
+
+    function showMenu() {
+      document.getElementById('menuContainer').style.display = 'block';
+      document.getElementById('waitingContainer').style.display = 'none';
+      document.getElementById('joiningContainer').style.display = 'none';
+      document.getElementById('gameContainer').classList.remove('active');
+      if (peer) {
+        peer.destroy();
+        peer = null;
+        conn = null;
+      }
+    }
+
+    function showWaiting() {
+      document.getElementById('menuContainer').style.display = 'none';
+      document.getElementById('waitingContainer').style.display = 'block';
+      document.getElementById('joiningContainer').style.display = 'none';
+    }
+
+    function showJoining() {
+      document.getElementById('menuContainer').style.display = 'none';
+      document.getElementById('waitingContainer').style.display = 'none';
+      document.getElementById('joiningContainer').style.display = 'block';
+    }
+
+    function showGame() {
+      document.getElementById('menuContainer').style.display = 'none';
+      document.getElementById('waitingContainer').style.display = 'none';
+      document.getElementById('joiningContainer').style.display = 'none';
+      document.getElementById('gameContainer').classList.add('active');
+    }
+
+    function setStatus(message, type = 'info') {
+      document.getElementById('menuStatus').textContent = message;
+      document.getElementById('menuStatus').className = `status ${type}`;
+    }
+
+    function createRoom() {
+      const name = document.getElementById('createName').value.trim();
+      if (!name) {
+        setStatus('Please enter your name', 'error');
+        return;
+      }
+
+      playerName = name;
+      roomCode = generateRoomCode();
+      isHost = true;
+      myColor = 'white';
+
+      document.getElementById('createBtn').disabled = true;
+      document.getElementById('joinBtn').disabled = true;
+      document.getElementById('roomCodeDisplay').textContent = roomCode;
+      document.getElementById('waitingSubtitle').textContent = `Hi ${playerName}! Share this code with your friend`;
+
+      setStatus('Creating room...', 'info');
+
+      peer = new Peer(`chess-${roomCode}`);
+
+      peer.on('open', () => {
+        setStatus('Room created! Waiting for opponent...', 'success');
+        showWaiting();
+        setupConnection();
+      });
+
+      peer.on('error', (err) => {
+        setStatus('Error: ' + err.message, 'error');
+        document.getElementById('createBtn').disabled = false;
+        document.getElementById('joinBtn').disabled = false;
+      });
+    }
+
+    function joinRoom() {
+      const name = document.getElementById('joinName').value.trim();
+      const code = document.getElementById('joinCode').value.trim().toUpperCase();
+
+      if (!name) {
+        setStatus('Please enter your name', 'error');
+        return;
+      }
+      if (!code || code.length < 4) {
+        setStatus('Please enter a valid room code', 'error');
+        return;
+      }
+
+      playerName = name;
+      roomCode = code;
+      isHost = false;
+      myColor = 'black';
+
+      document.getElementById('createBtn').disabled = true;
+      document.getElementById('joinBtn').disabled = true;
+
+      showJoining();
+
+      const peerId = `chess-${roomCode}`;
+      peer = new Peer();
+
+      peer.on('open', () => {
+        conn = peer.connect(peerId);
+
+        conn.on('open', () => {
+          showGame();
+          initGame();
+          sendMessage({ type: 'player_joined', name: playerName, color: 'black' });
+        });
+
+        conn.on('data', (data) => handleMessage(data));
+
+        conn.on('close', () => {
+          setConnectionStatus('disconnected');
+          alert('Host disconnected!');
+        });
+
+        conn.on('error', () => {
+          setStatus('Failed to connect to room', 'error');
+          showMenu();
+        });
+      });
+
+      peer.on('error', (err) => {
+        setStatus('Error: Room not found or host is offline', 'error');
+        showMenu();
+        document.getElementById('createBtn').disabled = false;
+        document.getElementById('joinBtn').disabled = false;
+      });
+    }
+
+    function setupConnection() {
+      peer.on('connection', (connection) => {
+        conn = connection;
+        conn.on('open', () => {
+          showGame();
+          initGame();
+          sendMessage({ type: 'game_start', hostName: playerName, guestName: 'Opponent', hostColor: 'white', guestColor: 'black' });
+        });
+
+        conn.on('data', (data) => handleMessage(data));
+
+        conn.on('close', () => {
+          setConnectionStatus('disconnected');
+          alert('Opponent disconnected!');
+        });
+      });
+    }
+
+    function initGame() {
+      initBoard();
+      currentTurn = 'white';
+      capturedWhite = [];
+      capturedBlack = [];
+      lastMove = null;
+      gameStarted = true;
+      selectedSquare = null;
+
+      document.getElementById('myColorBadge').textContent = myColor === 'white' ? 'White' : 'Black';
+      document.getElementById('myColorBadge').className = `color-badge ${myColor}`;
+      updateTurnDisplay();
+      renderBoard();
+    }
+
+    function copyRoomCode() {
+      navigator.clipboard.writeText(roomCode).then(() => {
+        const btn = document.querySelector('.copy-btn');
+        btn.innerHTML = '<i class="fas fa-check"></i> Copied!';
+        setTimeout(() => {
+          btn.innerHTML = '<i class="fas fa-copy"></i> Copy Code';
+        }, 2000);
+      });
+    }
+
+    function cancelRoom() {
+      if (peer) {
+        peer.destroy();
+        peer = null;
+      }
+      document.getElementById('createBtn').disabled = false;
+      document.getElementById('joinBtn').disabled = false;
+      showMenu();
+      setStatus('', 'info');
+    }
+
+    function cancelJoin() {
+      if (peer) {
+        peer.destroy();
+        peer = null;
+      }
+      document.getElementById('createBtn').disabled = false;
+      document.getElementById('joinBtn').disabled = false;
+      showMenu();
+      setStatus('', 'info');
+    }
+
+    function leaveGame() {
+      if (conn) {
+        sendMessage({ type: 'player_left' });
+        conn.close();
+      }
+      if (peer) {
+        peer.destroy();
+        peer = null;
+      }
+      conn = null;
+      gameStarted = false;
+      showMenu();
+      document.getElementById('createBtn').disabled = false;
+      document.getElementById('joinBtn').disabled = false;
+    }
+
+    function sendMessage(data) {
+      if (conn && conn.open) {
+        conn.send(data);
+      }
+    }
+
+    function handleMessage(data) {
+      switch (data.type) {
+        case 'player_joined':
+          break;
+
+        case 'game_start':
+          showGame();
+          initGame();
+          break;
+
+        case 'move':
+          applyRemoteMove(data);
+          break;
+
+        case 'player_left':
+          setConnectionStatus('disconnected');
+          alert('Opponent left the game!');
+          break;
+      }
+    }
+
+    function setConnectionStatus(status) {
+      const dot = document.getElementById('connectionDot');
+      const text = document.getElementById('connectionText');
+      dot.className = `connection-dot ${status}`;
+      text.textContent = status === 'connected' ? 'Connected' : status === 'connecting' ? 'Connecting...' : 'Disconnected';
+    }
+
+    function updateTurnDisplay() {
+      const turnEl = document.getElementById('turnDisplay');
+      const isMyTurn = (myColor === 'white' && currentTurn === 'white') ||
+                       (myColor === 'black' && currentTurn === 'black');
+      turnEl.innerHTML = `${currentTurn === 'white' ? 'White' : 'Black'} ${isMyTurn ? '(You)' : ''}`;
+    }
+
+    function renderBoard() {
+      const boardEl = document.getElementById('board');
+      boardEl.innerHTML = '';
+
+      for (let row = 0; row < 8; row++) {
+        for (let col = 0; col < 8; col++) {
+          const square = document.createElement('div');
+          const isLight = (row + col) % 2 === 0;
+          square.className = `square ${isLight ? 'light' : 'dark'}`;
+          square.dataset.row = row;
+          square.dataset.col = col;
+
+          if (selectedSquare && selectedSquare.row === row && selectedSquare.col === col) {
+            square.classList.add('selected');
+          }
+
+          if (lastMove && ((lastMove.from.row === row && lastMove.from.col === col) ||
+              (lastMove.to.row === row && lastMove.to.col === col))) {
+            square.classList.add('last-move');
+          }
+
+          if (board[row][col]) {
+            const piece = document.createElement('span');
+            piece.className = 'piece';
+            piece.textContent = PIECES[board[row][col]];
+            square.appendChild(piece);
+          }
+
+          square.addEventListener('click', () => handleSquareClick(row, col));
+          boardEl.appendChild(square);
+        }
+      }
+
+      updateTurnDisplay();
+
+      document.getElementById('whiteCaptured').innerHTML = 
+        capturedWhite.map(p => PIECES[p]).join('');
+      document.getElementById('blackCaptured').innerHTML = 
+        capturedBlack.map(p => PIECES[p]).join('');
+    }
+
+    function handleSquareClick(row, col) {
+      if (!gameStarted) return;
+      
+      const isMyTurn = (myColor === 'white' && currentTurn === 'white') ||
+                       (myColor === 'black' && currentTurn === 'black');
+      if (!isMyTurn) return;
+
+      const piece = board[row][col];
+      const isWhitePiece = piece && piece === piece.toUpperCase();
+      const isBlackPiece = piece && piece === piece.toLowerCase();
+
+      if (selectedSquare) {
+        const fromRow = selectedSquare.row;
+        const fromCol = selectedSquare.col;
+        
+        if (isValidMove(fromRow, fromCol, row, col)) {
+          makeMove(fromRow, fromCol, row, col);
+          sendMessage({
+            type: 'move',
+            from: { row: fromRow, col: fromCol },
+            to: { row, col },
+            board: board,
+            currentTurn: currentTurn,
+            capturedWhite: capturedWhite,
+            capturedBlack: capturedBlack,
+            lastMove: lastMove
+          });
+          selectedSquare = null;
+          renderBoard();
+          return;
+        }
+      }
+
+      if ((currentTurn === 'white' && isWhitePiece) || 
+          (currentTurn === 'black' && isBlackPiece)) {
+        selectedSquare = { row, col };
+        renderBoard();
+        showPossibleMoves(row, col);
+      }
+    }
+
+    function showPossibleMoves(row, col) {
+      const squares = document.querySelectorAll('.square');
+      for (let r = 0; r < 8; r++) {
+        for (let c = 0; c < 8; c++) {
+          if (isValidMove(row, col, r, c)) {
+            const targetPiece = board[r][c];
+            if (targetPiece) {
+              squares[r * 8 + c].classList.add('possible-capture');
+            } else {
+              squares[r * 8 + c].classList.add('possible-move');
+            }
+          }
+        }
+      }
+    }
+
+    function isValidMove(fromRow, fromCol, toRow, toCol) {
+      const piece = board[fromRow][fromCol];
+      if (!piece) return false;
+
+      const isWhite = piece === piece.toUpperCase();
+      const targetPiece = board[toRow][toCol];
+      
+      if (targetPiece) {
+        const targetIsWhite = targetPiece === targetPiece.toUpperCase();
+        if (isWhite === targetIsWhite) return false;
+      }
+
+      const deltaRow = toRow - fromRow;
+      const deltaCol = toCol - fromCol;
+      const absRow = Math.abs(deltaRow);
+      const absCol = Math.abs(deltaCol);
+
+      switch (piece.toUpperCase()) {
+        case 'P':
+          if (isWhite) {
+            if (deltaRow === -1 && deltaCol === 0 && !targetPiece) return true;
+            if (deltaRow === -2 && fromRow === 6 && !targetPiece && !board[fromRow - 1][fromCol]) return true;
+            if (deltaRow === -1 && absCol === 1 && targetPiece) return true;
+            if (deltaRow === -1 && absCol === 1 && enPassantTarget && 
+                enPassantTarget.row === toRow && enPassantTarget.col === toCol) return true;
+          } else {
+            if (deltaRow === 1 && deltaCol === 0 && !targetPiece) return true;
+            if (deltaRow === 2 && fromRow === 1 && !targetPiece && !board[fromRow + 1][fromCol]) return true;
+            if (deltaRow === 1 && absCol === 1 && targetPiece) return true;
+            if (deltaRow === 1 && absCol === 1 && enPassantTarget && 
+                enPassantTarget.row === toRow && enPassantTarget.col === toCol) return true;
+          }
+          return false;
+
+        case 'R':
+          if (deltaRow !== 0 && deltaCol !== 0) return false;
+          return isPathClear(fromRow, fromCol, toRow, toCol);
+
+        case 'N':
+          return (absRow === 2 && absCol === 1) || (absRow === 1 && absCol === 2);
+
+        case 'B':
+          if (absRow !== absCol) return false;
+          return isPathClear(fromRow, fromCol, toRow, toCol);
+
+        case 'Q':
+          if (deltaRow !== 0 && deltaCol !== 0 && absRow !== absCol) return false;
+          return isPathClear(fromRow, fromCol, toRow, toCol);
+
+        case 'K':
+          return absRow <= 1 && absCol <= 1;
+      }
+      return false;
+    }
+
+    function isPathClear(fromRow, fromCol, toRow, toCol) {
+      const deltaRow = Math.sign(toRow - fromRow);
+      const deltaCol = Math.sign(toCol - fromCol);
+      let row = fromRow + deltaRow;
+      let col = fromCol + deltaCol;
+
+      while (row !== toRow || col !== toCol) {
+        if (board[row][col]) return false;
+        row += deltaRow;
+        col += deltaCol;
+      }
+      return true;
+    }
+
+    function makeMove(fromRow, fromCol, toRow, toCol) {
+      const piece = board[fromRow][fromCol];
+      const captured = board[toRow][toCol];
+      const isWhite = piece === piece.toUpperCase();
+
+      if (captured) {
+        if (isWhite) {
+          capturedBlack.push(captured);
+        } else {
+          capturedWhite.push(captured);
+        }
+      }
+
+      if (enPassantTarget && toRow === enPassantTarget.row && toCol === enPassantTarget.col) {
+        const capturedPawnRow = isWhite ? toRow + 1 : toRow - 1;
+        const capturedPawn = board[capturedPawnRow][toCol];
+        if (capturedPawn) {
+          if (isWhite) {
+            capturedBlack.push(capturedPawn);
+          } else {
+            capturedWhite.push(capturedPawn);
+          }
+          board[capturedPawnRow][toCol] = '';
+        }
+      }
+
+      board[toRow][toCol] = piece;
+      board[fromRow][fromCol] = '';
+
+      if (piece.toUpperCase() === 'P' && Math.abs(toRow - fromRow) === 2) {
+        enPassantTarget = { row: (fromRow + toRow) / 2, col: fromCol };
+      } else {
+        enPassantTarget = null;
+      }
+
+      // Pawn promotion (auto-queen for simplicity)
+      if (piece.toUpperCase() === 'P' && (toRow === 0 || toRow === 7)) {
+        board[toRow][toCol] = isWhite ? 'Q' : 'q';
+      }
+
+      lastMove = { from: { row: fromRow, col: fromCol }, to: { row: toRow, col: toCol } };
+      currentTurn = currentTurn === 'white' ? 'black' : 'white';
+    }
+
+    function applyRemoteMove(data) {
+      board = data.board;
+      currentTurn = data.currentTurn;
+      capturedWhite = data.capturedWhite;
+      capturedBlack = data.capturedBlack;
+      lastMove = data.lastMove;
+      enPassantTarget = null;
+      renderBoard();
+    }
+  </script>
+</body>
+</html>

@@ -23,6 +23,10 @@ def index():
 def game():
     return send_from_directory('.', 'rock_paper_scissors.html')
 
+@app.route('/chess.html')
+def chess():
+    return send_from_directory('.', 'chess.html')
+
 @app.route('/vendor_data.html')
 def vendor_data():
     return send_from_directory('.', 'vendor_data.html')
