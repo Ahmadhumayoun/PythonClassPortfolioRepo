@@ -339,6 +339,105 @@
       transform: translateY(-10px) scale(1.15);
     }
 
+    .contact-form-section {
+      max-width: 700px;
+      margin: 80px auto 0;
+    }
+
+    .contact-form {
+      background: var(--glass);
+      backdrop-filter: blur(20px);
+      border: 1px solid rgba(255,255,255,0.1);
+      border-radius: 24px;
+      padding: 50px 40px;
+    }
+
+    .form-group {
+      margin-bottom: 25px;
+    }
+
+    .form-group label {
+      display: block;
+      margin-bottom: 8px;
+      font-weight: 500;
+      color: #ccc;
+    }
+
+    .form-group input,
+    .form-group textarea {
+      width: 100%;
+      padding: 16px 20px;
+      background: rgba(255,255,255,0.05);
+      border: 1px solid rgba(255,255,255,0.1);
+      border-radius: 12px;
+      color: #fff;
+      font-size: 1rem;
+      font-family: inherit;
+      transition: all 0.3s ease;
+    }
+
+    .form-group input:focus,
+    .form-group textarea:focus {
+      outline: none;
+      border-color: var(--primary);
+      box-shadow: 0 0 20px rgba(0, 212, 255, 0.2);
+      background: rgba(255,255,255,0.08);
+    }
+
+    .form-group textarea {
+      min-height: 150px;
+      resize: vertical;
+    }
+
+    .form-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 25px;
+    }
+
+    .submit-btn {
+      width: 100%;
+      padding: 18px 40px;
+      background: linear-gradient(90deg, var(--primary), var(--accent));
+      color: white;
+      border: none;
+      border-radius: 50px;
+      font-weight: 600;
+      font-size: 1.1rem;
+      cursor: pointer;
+      transition: all 0.4s ease;
+      box-shadow: 0 10px 30px rgba(0, 212, 255, 0.3);
+    }
+
+    .submit-btn:hover {
+      transform: translateY(-5px);
+      box-shadow: 0 20px 40px rgba(0, 212, 255, 0.4);
+    }
+
+    .submit-btn:active {
+      transform: translateY(-2px);
+    }
+
+    .form-status {
+      text-align: center;
+      margin-top: 20px;
+      padding: 15px;
+      border-radius: 12px;
+      display: none;
+    }
+
+    .form-status.success {
+      display: block;
+      background: rgba(0, 212, 255, 0.15);
+      color: var(--primary);
+    }
+
+    .form-status.error {
+      display: block;
+      background: rgba(255, 80, 80, 0.15);
+      color: #ff6b6b;
+    }
+
     footer {
       text-align: center;
       padding: 60px 20px 30px;
@@ -378,6 +477,8 @@
         <a href="#projects">Projects</a>
         <a href="#skills">Skills</a>
         <a href="#contact">Contact</a>
+        <a href="rock_paper_scissors.html">Games</a>
+        <a href="vendor_data.html">Vendor Data</a>
       </div>
     </div>
   </nav>
@@ -391,6 +492,9 @@
       <h1>Hello, I'm Ahmad Humayoun</h1>
       <p class="subtitle">Full Stack Developer crafting exceptional digital experiences from Lahore, Pakistan</p>
       <a href="#projects" class="cta-button">View My Work</a>
+      <a href="rock_paper_scissors.html" class="cta-button" style="margin-left: 15px; background: transparent; border: 2px solid var(--primary);">
+        <i class="fas fa-gamepad"></i> Play Game
+      </a>
     </div>
   </header>
 
@@ -516,6 +620,36 @@
       <a href="https://www.linkedin.com/in/ahmad-humayoun-543087237/" target="_blank"><i class="fab fa-linkedin"></i></a>
       <a href="https://github.com/AhmadHumayun" target="_blank"><i class="fab fa-github"></i></a>
     </div>
+
+    <div class="contact-form-section reveal">
+      <div class="contact-form">
+        <h3 style="text-align: center; margin-bottom: 35px; font-size: 1.5rem; color: #fff;">Send a Message</h3>
+        <form id="contactForm">
+          <div class="form-row">
+            <div class="form-group">
+              <label for="name">Your Name</label>
+              <input type="text" id="name" name="name" placeholder="John Doe" required>
+            </div>
+            <div class="form-group">
+              <label for="email">Your Email</label>
+              <input type="email" id="email" name="email" placeholder="john@example.com" required>
+            </div>
+          </div>
+          <div class="form-group">
+            <label for="subject">Subject</label>
+            <input type="text" id="subject" name="subject" placeholder="Project Inquiry" required>
+          </div>
+          <div class="form-group">
+            <label for="message">Message</label>
+            <textarea id="message" name="message" placeholder="Tell me about your project..." required></textarea>
+          </div>
+          <button type="submit" class="submit-btn">
+            <i class="fas fa-paper-plane"></i> Send Message
+          </button>
+          <div id="formStatus" class="form-status"></div>
+        </form>
+      </div>
+    </div>
   </section>
 
   <footer>
@@ -567,6 +701,51 @@
       } else {
         nav.style.background = 'rgba(255, 255, 255, 0.08)';
       }
+    });
+
+    // Contact form handling
+    document.getElementById('contactForm').addEventListener('submit', async function(e) {
+      e.preventDefault();
+      const formStatus = document.getElementById('formStatus');
+      const submitBtn = this.querySelector('.submit-btn');
+      
+      submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Sending...';
+      submitBtn.disabled = true;
+
+      const formData = {
+        name: document.getElementById('name').value,
+        email: document.getElementById('email').value,
+        subject: document.getElementById('subject').value,
+        message: document.getElementById('message').value
+      };
+
+      try {
+        const response = await fetch('/submit', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(formData)
+        });
+        
+        const result = await response.json();
+        
+        if (result.success) {
+          formStatus.className = 'form-status success';
+          formStatus.innerHTML = '<i class="fas fa-check-circle"></i> ' + result.message;
+          this.reset();
+        } else {
+          throw new Error(result.message);
+        }
+      } catch (error) {
+        formStatus.className = 'form-status error';
+        formStatus.innerHTML = '<i class="fas fa-exclamation-circle"></i> Error: ' + error.message;
+      }
+
+      submitBtn.innerHTML = '<i class="fas fa-paper-plane"></i> Send Message';
+      submitBtn.disabled = false;
+
+      setTimeout(() => {
+        formStatus.className = 'form-status';
+      }, 5000);
     });
   </script>
 </body>

@@ -1,0 +1,474 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Rock Paper Scissors</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+  <style>
+    :root {
+      --primary: #00d4ff;
+      --accent: #7b5eff;
+      --dark: #0a0a0a;
+      --glass: rgba(255, 255, 255, 0.08);
+    }
+
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: 'Segoe UI', system-ui, sans-serif;
+      background: var(--dark);
+      color: #e0e0e0;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      overflow-x: hidden;
+    }
+
+    .bg-animation {
+      position: fixed;
+      inset: 0;
+      background: radial-gradient(circle at 20% 30%, rgba(0, 212, 255, 0.08) 0%, transparent 50%),
+                  radial-gradient(circle at 80% 70%, rgba(123, 94, 255, 0.08) 0%, transparent 50%);
+      z-index: -1;
+      animation: bgMove 25s ease infinite;
+    }
+
+    @keyframes bgMove {
+      0% { background-position: 0% 50%; }
+      50% { background-position: 100% 50%; }
+      100% { background-position: 0% 50%; }
+    }
+
+    nav {
+      position: fixed;
+      top: 20px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: var(--glass);
+      backdrop-filter: blur(20px);
+      border: 1px solid rgba(255,255,255,0.1);
+      border-radius: 60px;
+      padding: 12px 40px;
+      z-index: 1000;
+      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+    }
+
+    .logo {
+      font-size: 1.6rem;
+      font-weight: 700;
+      background: linear-gradient(90deg, var(--primary), var(--accent));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+
+    .container {
+      margin-top: 140px;
+      text-align: center;
+      padding: 20px;
+    }
+
+    h1 {
+      font-size: 3rem;
+      margin-bottom: 10px;
+      background: linear-gradient(90deg, var(--primary), var(--accent));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+
+    .subtitle {
+      color: #888;
+      margin-bottom: 50px;
+    }
+
+    .score-board {
+      display: flex;
+      justify-content: center;
+      gap: 60px;
+      margin-bottom: 60px;
+    }
+
+    .score-item {
+      text-align: center;
+    }
+
+    .score-value {
+      font-size: 3.5rem;
+      font-weight: 700;
+      color: var(--primary);
+    }
+
+    .score-label {
+      font-size: 1rem;
+      color: #888;
+      text-transform: uppercase;
+      letter-spacing: 2px;
+    }
+
+    .wins .score-value { color: #4ade80; }
+    .losses .score-value { color: #f87171; }
+    .ties .score-value { color: #fbbf24; }
+
+    .game-area {
+      background: var(--glass);
+      backdrop-filter: blur(20px);
+      border: 1px solid rgba(255,255,255,0.1);
+      border-radius: 30px;
+      padding: 60px 80px;
+      max-width: 700px;
+      margin: 0 auto;
+    }
+
+    .battle-display {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      gap: 40px;
+      margin-bottom: 50px;
+    }
+
+    .choice-box {
+      text-align: center;
+    }
+
+    .choice-box .emoji {
+      font-size: 6rem;
+      display: block;
+      margin-bottom: 15px;
+      transition: all 0.3s ease;
+    }
+
+    .choice-box .label {
+      font-size: 1.2rem;
+      color: #888;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+    }
+
+    .vs {
+      font-size: 2rem;
+      font-weight: 700;
+      color: var(--accent);
+    }
+
+    .result-text {
+      font-size: 2rem;
+      font-weight: 700;
+      margin-bottom: 40px;
+      min-height: 50px;
+      transition: all 0.3s ease;
+    }
+
+    .result-text.win { color: #4ade80; }
+    .result-text.lose { color: #f87171; }
+    .result-text.tie { color: #fbbf24; }
+
+    .choices {
+      display: flex;
+      justify-content: center;
+      gap: 25px;
+    }
+
+    .choice-btn {
+      width: 120px;
+      height: 120px;
+      border-radius: 50%;
+      background: rgba(255,255,255,0.05);
+      border: 3px solid rgba(255,255,255,0.1);
+      cursor: pointer;
+      transition: all 0.3s ease;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .choice-btn .emoji {
+      font-size: 3.5rem;
+      margin-bottom: 8px;
+    }
+
+    .choice-btn .label {
+      font-size: 0.85rem;
+      color: #aaa;
+      text-transform: uppercase;
+    }
+
+    .choice-btn:hover {
+      transform: scale(1.15) translateY(-10px);
+      border-color: var(--primary);
+      background: rgba(0, 212, 255, 0.1);
+      box-shadow: 0 15px 40px rgba(0, 212, 255, 0.3);
+    }
+
+    .choice-btn:active {
+      transform: scale(1.05);
+    }
+
+    .choice-btn:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+
+    .reset-btn {
+      margin-top: 40px;
+      padding: 15px 50px;
+      background: linear-gradient(90deg, var(--primary), var(--accent));
+      color: white;
+      border: none;
+      border-radius: 50px;
+      font-size: 1.1rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.3s ease;
+    }
+
+    .reset-btn:hover {
+      transform: translateY(-5px);
+      box-shadow: 0 15px 30px rgba(0, 212, 255, 0.4);
+    }
+
+    .history {
+      margin-top: 40px;
+      max-width: 500px;
+      margin-left: auto;
+      margin-right: auto;
+    }
+
+    .history h3 {
+      color: #888;
+      margin-bottom: 15px;
+      font-size: 1rem;
+      text-transform: uppercase;
+      letter-spacing: 2px;
+    }
+
+    .history-list {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      gap: 10px;
+    }
+
+    .history-item {
+      padding: 8px 16px;
+      background: rgba(255,255,255,0.05);
+      border-radius: 20px;
+      font-size: 0.9rem;
+      border: 1px solid rgba(255,255,255,0.1);
+    }
+
+    .history-item.win { border-color: #4ade80; }
+    .history-item.lose { border-color: #f87171; }
+    .history-item.tie { border-color: #fbbf24; }
+
+    @keyframes shake {
+      0%, 100% { transform: rotate(0deg); }
+      25% { transform: rotate(-10deg); }
+      75% { transform: rotate(10deg); }
+    }
+
+    .shake {
+      animation: shake 0.3s ease;
+    }
+
+    @keyframes pop {
+      0% { transform: scale(0.5); opacity: 0; }
+      50% { transform: scale(1.2); }
+      100% { transform: scale(1); opacity: 1; }
+    }
+
+    .pop {
+      animation: pop 0.4s ease;
+    }
+  </style>
+</head>
+<body>
+  <div class="bg-animation"></div>
+
+  <nav>
+    <div class="logo">Ahmad Humayoun</div>
+  </nav>
+
+  <div class="container">
+    <h1>Rock Paper Scissors</h1>
+    <p class="subtitle">Challenge the computer!</p>
+
+    <div class="score-board">
+      <div class="score-item wins">
+        <div class="score-value" id="wins">0</div>
+        <div class="score-label">Wins</div>
+      </div>
+      <div class="score-item losses">
+        <div class="score-value" id="losses">0</div>
+        <div class="score-label">Losses</div>
+      </div>
+      <div class="score-item ties">
+        <div class="score-value" id="ties">0</div>
+        <div class="score-label">Ties</div>
+      </div>
+    </div>
+
+    <div class="game-area">
+      <div class="battle-display">
+        <div class="choice-box">
+          <span class="emoji" id="playerChoice">❓</span>
+          <span class="label">You</span>
+        </div>
+        <span class="vs">VS</span>
+        <div class="choice-box">
+          <span class="emoji" id="computerChoice">❓</span>
+          <span class="label">Computer</span>
+        </div>
+      </div>
+
+      <div class="result-text" id="resultText">Choose your weapon!</div>
+
+      <div class="choices">
+        <button class="choice-btn" data-choice="rock">
+          <span class="emoji">🪨</span>
+          <span class="label">Rock</span>
+        </button>
+        <button class="choice-btn" data-choice="paper">
+          <span class="emoji">📄</span>
+          <span class="label">Paper</span>
+        </button>
+        <button class="choice-btn" data-choice="scissors">
+          <span class="emoji">✂️</span>
+          <span class="label">Scissors</span>
+        </button>
+      </div>
+
+      <button class="reset-btn" id="resetBtn">
+        <i class="fas fa-redo"></i> Reset Game
+      </button>
+    </div>
+
+    <div class="history">
+      <h3>Match History</h3>
+      <div class="history-list" id="historyList">
+        <span class="history-item" style="color: #666;">No matches yet</span>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const EMOJIS = { rock: '🪨', paper: '📄', scissors: '✂️' };
+    const CHOICES = ['rock', 'paper', 'scissors'];
+    
+    let score = { wins: 0, losses: 0, ties: 0 };
+    let isPlaying = false;
+
+    const playerChoiceEl = document.getElementById('playerChoice');
+    const computerChoiceEl = document.getElementById('computerChoice');
+    const resultTextEl = document.getElementById('resultText');
+    const historyListEl = document.getElementById('historyList');
+    const resetBtn = document.getElementById('resetBtn');
+    const choiceBtns = document.querySelectorAll('.choice-btn');
+
+    function updateScore() {
+      document.getElementById('wins').textContent = score.wins;
+      document.getElementById('losses').textContent = score.losses;
+      document.getElementById('ties').textContent = score.ties;
+    }
+
+    function addToHistory(player, computer, result) {
+      const resultClass = result === 'win' ? 'win' : result === 'lose' ? 'lose' : 'tie';
+      const resultLabel = result === 'win' ? 'W' : result === 'lose' ? 'L' : 'T';
+      
+      if (historyListEl.querySelector('span[style]')) {
+        historyListEl.innerHTML = '';
+      }
+      
+      const item = document.createElement('span');
+      item.className = `history-item ${resultClass}`;
+      item.textContent = `${EMOJIS[player]} vs ${EMOJIS[computer]} - ${resultLabel}`;
+      item.classList.add('pop');
+      historyListEl.insertBefore(item, historyListEl.firstChild);
+      
+      if (historyListEl.children.length > 10) {
+        historyListEl.removeChild(historyListEl.lastChild);
+      }
+    }
+
+    function play(playerChoice) {
+      if (isPlaying) return;
+      isPlaying = true;
+      
+      choiceBtns.forEach(btn => btn.disabled = true);
+      
+      playerChoiceEl.textContent = '?';
+      computerChoiceEl.textContent = '?';
+      resultTextEl.textContent = '...';
+      resultTextEl.className = 'result-text';
+
+      setTimeout(() => {
+        playerChoiceEl.textContent = EMOJIS[playerChoice];
+        playerChoiceEl.classList.add('pop');
+      }, 200);
+
+      setTimeout(() => {
+        const computerChoice = CHOICES[Math.floor(Math.random() * CHOICES.length)];
+        computerChoiceEl.textContent = EMOJIS[computerChoice];
+        computerChoiceEl.classList.add('pop');
+
+        let result, resultMessage;
+        if (playerChoice === computerChoice) {
+          result = 'tie';
+          resultMessage = "It's a Tie! 🤝";
+        } else if (
+          (playerChoice === 'rock' && computerChoice === 'scissors') ||
+          (playerChoice === 'paper' && computerChoice === 'rock') ||
+          (playerChoice === 'scissors' && computerChoice === 'paper')
+        ) {
+          result = 'win';
+          resultMessage = 'You Win! 🎉';
+          score.wins++;
+        } else {
+          result = 'lose';
+          resultMessage = 'You Lose! 😔';
+          score.losses++;
+        }
+
+        setTimeout(() => {
+          resultTextEl.textContent = resultMessage;
+          resultTextEl.className = `result-text ${result}`;
+          
+          addToHistory(playerChoice, computerChoice, result);
+          updateScore();
+          
+          isPlaying = false;
+          choiceBtns.forEach(btn => btn.disabled = false);
+        }, 400);
+
+      }, 600);
+    }
+
+    function resetGame() {
+      score = { wins: 0, losses: 0, ties: 0 };
+      updateScore();
+      playerChoiceEl.textContent = '❓';
+      computerChoiceEl.textContent = '❓';
+      resultTextEl.textContent = 'Choose your weapon!';
+      resultTextEl.className = 'result-text';
+      historyListEl.innerHTML = '<span class="history-item" style="color: #666;">No matches yet</span>';
+    }
+
+    choiceBtns.forEach(btn => {
+      btn.addEventListener('click', () => {
+        const choice = btn.dataset.choice;
+        btn.classList.add('shake');
+        setTimeout(() => btn.classList.remove('shake'), 300);
+        play(choice);
+      });
+    });
+
+    resetBtn.addEventListener('click', resetGame);
+  </script>
+</body>
+</html>
