@@ -44,14 +44,14 @@
 
     nav {
       position: fixed;
-      top: 20px;
-      left: 50%;
-      transform: translateX(-50%);
+      top: 15px;
+      left: 15px;
+      right: 15px;
       background: var(--glass);
       backdrop-filter: blur(20px);
       border: 1px solid rgba(255,255,255,0.1);
       border-radius: 60px;
-      padding: 12px 40px;
+      padding: 10px 20px;
       z-index: 1000;
       box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
     }
@@ -59,30 +59,96 @@
     .nav-container {
       display: flex;
       align-items: center;
-      gap: 50px;
+      justify-content: space-between;
+      gap: 15px;
     }
 
     .logo {
-      font-size: 1.6rem;
+      font-size: 1.3rem;
       font-weight: 700;
       background: linear-gradient(90deg, var(--primary), var(--accent));
       -webkit-background-clip: text;
       -webkit-text-fill-color: transparent;
+      white-space: nowrap;
+    }
+
+    .nav-links {
+      display: flex;
+      align-items: center;
+      gap: 5px;
+      flex-wrap: wrap;
+      justify-content: center;
     }
 
     .nav-links a {
       color: #ddd;
       text-decoration: none;
       font-weight: 500;
-      padding: 8px 16px;
+      padding: 6px 12px;
       border-radius: 30px;
       transition: all 0.3s ease;
+      font-size: 0.9rem;
+      white-space: nowrap;
     }
 
     .nav-links a:hover {
       background: rgba(255,255,255,0.1);
       color: white;
       transform: translateY(-2px);
+    }
+
+    .mobile-menu-btn {
+      display: none;
+      background: none;
+      border: none;
+      color: #fff;
+      font-size: 1.5rem;
+      cursor: pointer;
+      padding: 5px;
+    }
+
+    @media (max-width: 768px) {
+      nav {
+        border-radius: 20px;
+        top: 10px;
+        left: 10px;
+        right: 10px;
+        padding: 10px 15px;
+      }
+
+      .logo {
+        font-size: 1.1rem;
+      }
+
+      .nav-links {
+        display: none;
+        position: absolute;
+        top: 100%;
+        left: 0;
+        right: 0;
+        background: rgba(10, 10, 10, 0.95);
+        backdrop-filter: blur(20px);
+        border: 1px solid rgba(255,255,255,0.1);
+        border-radius: 20px;
+        margin-top: 10px;
+        padding: 15px;
+        flex-direction: column;
+        gap: 5px;
+      }
+
+      .nav-links.active {
+        display: flex;
+      }
+
+      .nav-links a {
+        width: 100%;
+        text-align: center;
+        padding: 12px;
+      }
+
+      .mobile-menu-btn {
+        display: block;
+      }
     }
 
     header {
@@ -471,8 +537,11 @@
   <!-- Navigation -->
   <nav>
     <div class="nav-container">
-      <div class="logo">Ahmad Humayoun</div>
-      <div class="nav-links">
+      <a href="index.html" class="logo">Ahmad Humayoun</a>
+      <button class="mobile-menu-btn" onclick="toggleMobileMenu()">
+        <i class="fas fa-bars"></i>
+      </button>
+      <div class="nav-links" id="navLinks">
         <a href="#about">About</a>
         <a href="#projects">Projects</a>
         <a href="#skills">Skills</a>
@@ -658,6 +727,21 @@
   </footer>
 
   <script>
+    // Mobile menu toggle
+    function toggleMobileMenu() {
+      const navLinks = document.getElementById('navLinks');
+      navLinks.classList.toggle('active');
+    }
+
+    // Close mobile menu when clicking outside
+    document.addEventListener('click', function(e) {
+      const nav = document.querySelector('nav');
+      const navLinks = document.getElementById('navLinks');
+      if (!nav.contains(e.target) && navLinks.classList.contains('active')) {
+        navLinks.classList.remove('active');
+      }
+    });
+
     // Smooth scrolling
     document.querySelectorAll('a[href^="#"]').forEach(anchor => {
       anchor.addEventListener('click', function(e) {
